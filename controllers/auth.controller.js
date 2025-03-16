@@ -1,4 +1,5 @@
 const User = require("../models/users.model");
+const Post = require("../models/post.model"); // Import the Post model to retrieve user's posts
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
@@ -53,20 +54,24 @@ const loginUser = async (req, res) => {
     }
 };
 
-// @desc Get current user's profile
+// @desc Get current user's profile and their posts
 // @route GET /api/auth/profile
 // @access Private
 const getProfile = async (req, res) => {
     try {
         const userId = req.user.id; // Extract user ID from the token
 
-        const user = await User.findById(userId).select('-password'); // Exclude password
-
+        // Retrieve the user's profile, excluding the password field
+        const user = await User.findById(userId).select('-password');
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        res.status(200).json({ success: true, user });
+        // Find all posts created by the user, sorted by most recent
+        const posts = await Post.find({ user: userId }).sort({ createdAt: -1 });
+
+        // Return user profile along with the user's posts
+        res.status(200).json({ success: true, user, posts });
     } catch (err) {
         console.error('Error fetching profile:', err);
         res.status(500).json({ message: 'Server error', error: err.message });
