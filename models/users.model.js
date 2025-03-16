@@ -7,6 +7,8 @@ const UserSchema = new mongoose.Schema({
     seller: { type: Boolean, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     createdAt: { type: Date, default: Date.now },
 });
 

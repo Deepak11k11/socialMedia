@@ -44,10 +44,29 @@ const loginUser = async (req, res) => {
         // Generate JWT
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 
-        res.json({ response: "200", token, user: { name: user.name, username: user.username } });
+        res.json({ response: "200", data: { token, user: { name: user.name, username: user.username } } });
     } catch (error) {
         res.status(500).json({ message: "Server Error", error });
     }
 };
 
-module.exports = { registerUser, loginUser };
+const getProfile = async (req, res) => {
+    try {
+        const userId = req.user.id; // Extract user ID from the token
+
+        const user = await User.findById(userId).select('-password'); // Exclude password
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.status(200).json({ success: true, user });
+    } catch (err) {
+        console.error('Error fetching profile:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+
+
+module.exports = { registerUser, loginUser, getProfile };

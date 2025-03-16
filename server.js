@@ -18,10 +18,14 @@ app.use(cors()); // Enable CORS
 // Routes
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/posts", require("./routes/post.routes"));
+app.use("/api/comments", require("./routes/comment.routes"));
+app.use("/api/likes", require("./routes/like.routes"));
+app.use("/api/follow", require("./routes/follow.routes"));
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
 
 
 

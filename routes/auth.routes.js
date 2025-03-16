@@ -1,6 +1,7 @@
 const express = require("express");
-const { registerUser, loginUser } = require("../controllers/auth.controller");
+const { registerUser, loginUser, getProfile } = require("../controllers/auth.controller");
 const { check, validationResult } = require("express-validator");
+const authMiddleware = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
@@ -32,5 +33,10 @@ router.post("/login", validateLogin, (req, res, next) => {
     }
     next();
 }, loginUser);
+
+
+router.get('/profile', authMiddleware, getProfile);
+
+
 
 module.exports = router;
