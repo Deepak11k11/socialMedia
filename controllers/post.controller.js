@@ -56,16 +56,22 @@
 
 
 
-
 const Post = require("../models/post.model");
-const User = require("../models/users.model"); // Import User model to access following list
+const User = require("../models/users.model"); // Make sure the path is correct
+const Like = require("../models/like.model");
+const Comment = require("../models/comment.model");
 const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
 
+// @desc    Create a new post with media upload
+// @route   POST /api/posts
+// @access  Private
 const createPost = async (req, res) => {
     try {
-        if (!req.file)
+        // Validate that a file has been uploaded
+        if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
+        }
 
         // Upload file to Cloudinary
         const result = await cloudinary.uploader.upload(req.file.path, {
@@ -82,7 +88,7 @@ const createPost = async (req, res) => {
             }
         });
 
-        // Save post to database
+        // Create new post document with the media URL from Cloudinary
         const post = new Post({
             user: req.user.id,
             caption: req.body.caption,
@@ -93,24 +99,49 @@ const createPost = async (req, res) => {
         await post.save();
         res.status(201).json({ message: "Post created successfully", post });
     } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
+        console.error("Error creating post:", error);
+        res.status(500).json({ message: "Server Error", error: error.message });
     }
 };
 
+// @desc    Get posts for users the current user follows, with likes count and comments
+// @route   POST /api/posts/all
+// @access  Private
 const getPosts = async (req, res) => {
     try {
-        // Find the current user to retrieve the following list
+        // Find the current user to get the following list
         const currentUser = await User.findById(req.user.id);
-        if (!currentUser) return res.status(404).json({ message: "User not found" });
+        if (!currentUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-        // Query posts from users that the current user follows
+        // Find posts from users that the current user follows
         const posts = await Post.find({ user: { $in: currentUser.following } })
             .sort({ createdAt: -1 })
             .populate("user", "name username");
 
-        res.status(200).json({ posts });
+        // For each post, get the number of likes and the related comments
+        const postsWithExtras = await Promise.all(
+            posts.map(async (post) => {
+                // Count likes for this post
+                const likesCount = await Like.countDocuments({ post: post._id });
+                // Get all comments for this post, populating the user field
+                const comments = await Comment.find({ post: post._id })
+                    .populate("user", "name username")
+                    .sort({ createdAt: 1 }); // Chronologically sorted comments
+
+                return {
+                    ...post.toObject(),
+                    likesCount,
+                    comments,
+                };
+            })
+        );
+
+        res.status(200).json({ posts: postsWithExtras });
     } catch (error) {
-        res.status(500).json({ message: "Server error", error });
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 
