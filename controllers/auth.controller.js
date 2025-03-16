@@ -1,6 +1,7 @@
 const User = require("../models/users.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 // @desc Register a new user
@@ -28,7 +29,9 @@ const registerUser = async (req, res) => {
     }
 };
 
-
+// @desc Login user and get token
+// @route POST /api/auth/login
+// @access Public
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -50,6 +53,9 @@ const loginUser = async (req, res) => {
     }
 };
 
+// @desc Get current user's profile
+// @route GET /api/auth/profile
+// @access Private
 const getProfile = async (req, res) => {
     try {
         const userId = req.user.id; // Extract user ID from the token
@@ -67,6 +73,35 @@ const getProfile = async (req, res) => {
     }
 };
 
+// @desc Search for users by username, name, email or user ID
+// @route GET /api/auth/search?q=searchTerm
+// @access Private
+const searchUsers = async (req, res) => {
+    try {
+        const query = req.query.q;
+        if (!query) {
+            return res.status(400).json({ message: "Query parameter 'q' is required." });
+        }
 
+        // Create search criteria for username, name, or email (case-insensitive)
+        let searchCriteria = {
+            $or: [
+                { username: { $regex: query, $options: "i" } },
+                { name: { $regex: query, $options: "i" } },
+                { email: { $regex: query, $options: "i" } }
+            ]
+        };
 
-module.exports = { registerUser, loginUser, getProfile };
+        // If the query is a valid ObjectId, add search by _id
+        if (mongoose.Types.ObjectId.isValid(query)) {
+            searchCriteria.$or.push({ _id: query });
+        }
+
+        const users = await User.find(searchCriteria).select('-password');
+        res.status(200).json({ success: true, users });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+module.exports = { registerUser, loginUser, getProfile, searchUsers };

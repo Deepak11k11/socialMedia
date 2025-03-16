@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, loginUser, getProfile } = require("../controllers/auth.controller");
+const { registerUser, loginUser, getProfile, searchUsers } = require("../controllers/auth.controller");
 const { check, validationResult } = require("express-validator");
 const authMiddleware = require("../middlewares/auth.middleware");
 
@@ -16,7 +16,6 @@ const validateLogin = [
     check("password", "Password is required").exists(),
 ];
 
-
 router.post("/register", validateRegistration, (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -24,7 +23,6 @@ router.post("/register", validateRegistration, (req, res, next) => {
     }
     next();
 }, registerUser);
-
 
 router.post("/login", validateLogin, (req, res, next) => {
     const errors = validationResult(req);
@@ -34,9 +32,10 @@ router.post("/login", validateLogin, (req, res, next) => {
     next();
 }, loginUser);
 
-
 router.get('/profile', authMiddleware, getProfile);
 
-
+// New endpoint: Search for users by query
+// Example: GET /api/auth/search?q=john
+router.get('/search', authMiddleware, searchUsers);
 
 module.exports = router;
