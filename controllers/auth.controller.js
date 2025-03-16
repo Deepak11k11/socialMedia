@@ -10,7 +10,7 @@ require("dotenv").config();
 // @access Public
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password, username, mobile, seller } = req.body;
+        const { name, email, password, username, bioData, seller } = req.body;
 
         // Check if user already exists
         let user = await User.findOne({ email });
@@ -21,7 +21,7 @@ const registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Create new user
-        user = new User({ name, email, password: hashedPassword, username, mobile, seller });
+        user = new User({ name, email, password: hashedPassword, username, bioData, seller });
         await user.save();
 
         res.status(201).json({ message: "User registered successfully" });
