@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
     username: { type: String, required: true },
-    mobile: { type: String, required: true },
+    bioData: { type: String, required: true },
     seller: { type: Boolean, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
