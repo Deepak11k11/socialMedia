@@ -21,6 +21,7 @@ app.use("/api/posts", require("./routes/post.routes"));
 app.use("/api/comments", require("./routes/comment.routes"));
 app.use("/api/likes", require("./routes/like.routes"));
 app.use("/api/follow", require("./routes/follow.routes"));
+app.use("/api/ecommerce", require("./routes/product.routes"));
 
 
 
