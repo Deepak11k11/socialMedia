@@ -123,7 +123,7 @@ require("dotenv").config();
 // @access Public
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password, username, biodata, seller } = req.body;
+        const { name, email, password, username, bioData, seller } = req.body;
 
         // Check if user already exists
         let user = await User.findOne({ email });
